@@ -97,7 +97,7 @@ public class TaskServiceJPATest {
     }
 
     @Test
-    public void listShouldBeEmptyWhenNoTasks(){
+    public void showList_shouldReturnEmptyListWhenNoTasks(){
 
         assertThat(taskService.showList().size()).
             as("Task List should be empty when there are no tasks").
@@ -105,7 +105,7 @@ public class TaskServiceJPATest {
     }
 
     @Test
-    public void listShouldBeEmptyWhenOnlyPostponedTasks(){
+    public void showList_shouldReturnEmptyListWhenOnlyPostponedTasks(){
 
         TaskDTO task = new TaskDTO();
         task.setStatus(POSTPONED);
