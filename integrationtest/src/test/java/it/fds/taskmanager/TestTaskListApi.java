@@ -22,7 +22,8 @@ public class TestTaskListApi {
 
   @BeforeClass
   public void checkPreRequisiteToRunTest(){
-    Map<String, Task> taskIdMap = TaskApiUtil.getTasksCreatedBeforeTime(Calendar.getInstance().getTimeInMillis());
+    Map<String, Task> taskIdMap = TaskApiUtil.getTasksCreatedBeforeTime(
+        Calendar.getInstance().getTimeInMillis());
 
     if (taskIdMap.size() == 0){
       logger.error("Skipping the test as Task list is Empty");
@@ -36,24 +37,29 @@ public class TestTaskListApi {
    * Test steps :
    * 1) Get list of tasks from DB which are not in postponed state
    * 2) Get list of tasks from /task/list api
-   * 3) Compare both the list for equality and do field by field comparison for each Task object in the lists.
+   * 3) Compare both the list for equality and do field by field comparison for each
+   *    Task object in the lists.
    */
   @Test
   public void testTaskListApiShowsAllTasksAsExpected(){
 
-    //here 2 mins is used as a buffer to filter out the new tasks which could have been created by scheduler
+    //here 2 mins is used as a buffer to filter out the new tasks which could have been created by
+    // scheduler
     Calendar currentTime = Calendar.getInstance();
     currentTime.add(Calendar.MINUTE, -2);
 
     List<Task> taskListFromDB = DBUtil.getTasksCreatedBeforeTime(currentTime);
     logger.info("DB list size = "+taskListFromDB.size());
 
-    Map<String, Task> taskIdMap = TaskApiUtil.getTasksCreatedBeforeTime(currentTime.getTimeInMillis());
+    Map<String, Task> taskIdMap = TaskApiUtil.getTasksCreatedBeforeTime(
+        currentTime.getTimeInMillis());
     logger.info("Api List Size = "+taskIdMap.size());
 
-    assertThat(taskListFromDB.size()).isEqualTo(taskIdMap.size());
-
     SoftAssertions softassert = new SoftAssertions();
+    softassert.assertThat(taskIdMap.size()).
+        as("Number of Tasks from API should be equal to that from DB").
+        isEqualTo(taskListFromDB.size());
+
     for(Task task : taskListFromDB){
 
       Task taskFromApi = taskIdMap.getOrDefault(task.getUuid(), new Task());
@@ -73,13 +79,14 @@ public class TestTaskListApi {
    */
   @Test
   public void testTaskListApiDoesntShowPostponedTasks(){
-    Map<String, Task> taskIdMap = TaskApiUtil.getTasksCreatedBeforeTime(Calendar.getInstance().getTimeInMillis());
+    Map<String, Task> taskIdMap = TaskApiUtil.getTasksCreatedBeforeTime(
+        Calendar.getInstance().getTimeInMillis());
 
     Task taskToPostpone = taskIdMap.get(taskIdMap.keySet().toArray()[0]);
     logger.info("Postponing task with Id : "+taskToPostpone.getUuid());
     HTTPResponse response = TaskApiUtil.postponeTask(taskToPostpone, 10);
 
-    assertThat(response.getStatusCode()).as("Failed to Postpone the task").isEqualTo(200);
+    assertThat(response.getStatusCode()).as("Failed to Postpone task").isEqualTo(200);
 
     taskIdMap = TaskApiUtil.getTasksCreatedBeforeTime(Calendar.getInstance().getTimeInMillis());
     assertThat(taskIdMap.getOrDefault(taskToPostpone.getUuid(), null)).
